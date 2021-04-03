@@ -36,6 +36,18 @@ namespace SportsEcommerce
             // Scoped services that creates a service where each HTTP request gets its own repository object,
             // which is the way that entity framework core is typically used
             services.AddScoped<IStoreRepository, EFStoreRepository>();
+            services.AddScoped<IOrderRepository, EFOrderRepository>();
+
+
+            services.AddRazorPages().AddRazorRuntimeCompilation();
+
+            // sets up in-memory data store so sessions can be stored in memory,
+            // this means that sessions are lost after applicaiton is stopped or restarted 
+            services.AddDistributedMemoryCache();
+            services.AddSession();
+            // request for for the Cart service will be handled by creating SessionCart objects
+            services.AddScoped<Cart>(sp => SessionCart.GetCart(sp));
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -48,11 +60,26 @@ namespace SportsEcommerce
             app.UseStatusCodePages();
             app.UseStaticFiles();
 
+            app.UseSession();
+
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapControllerRoute("catPage", "{category}/Page{productPage}",
+                    new { controller = "Home", action = "Index" });
+
+                endpoints.MapControllerRoute("page", "Page{productPage:int}",
+                    new { controller = "Home", action = "Index", productPage = 1 });
+
+                endpoints.MapControllerRoute("category", "{category}",
+                   new { controller = "Home", action = "Index", productPage = 1 });
+
+                endpoints.MapControllerRoute("Pagination", "Products/Page{productPage}",
+                    new { controller = "Home", action = "Index" });
                 endpoints.MapDefaultControllerRoute();
+
+                endpoints.MapRazorPages();
             });
 
             SeedData.EnsurePopulated(app);

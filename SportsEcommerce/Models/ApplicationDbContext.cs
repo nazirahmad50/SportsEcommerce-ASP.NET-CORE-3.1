@@ -11,5 +11,7 @@ namespace SportsEcommerce.Models
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> opts) : base (opts){}
 
         public DbSet<Product> Products { get; set; }
+        public DbSet<Order> Orders { get; set; }
+
     }
 }

@@ -12,7 +12,7 @@ namespace SportsEcommerce.Models
         /// without the 'IQueryable' i would have to retrieve all of the Product Objects from the database and then discard the ones that i dont want,
         /// which is an expensive operation
         /// thats why IQueryable interface is used over IEnumerable in database repository interfaces and classes
-        /// However, each time the collection of objects is enemurated, teh query will be evaluated again, which means a new query will be sent to teh database,
+        /// However, each time the collection of objects is enemurated, the query will be evaluated again, which means a new query will be sent to the database,
         /// in such situations, the IQueryable interface should be converted to a more predictable form using the ToList<> or ToArray extension methods
         /// </summary>
         IQueryable<Product> Products { get;}

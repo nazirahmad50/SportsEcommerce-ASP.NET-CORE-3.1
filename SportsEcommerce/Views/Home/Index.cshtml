@@ -1,1 +1,13 @@
-﻿<h4>Welcome</h4>
+﻿@model ProductsListViewModel
+
+@foreach (var item in Model.Products)
+{
+    <partial name="_ProductSummary" model="item" />
+}
+
+
+<div page-model="@Model.PagingInfo" page-action="Index" page-classes-enabled="true"
+     page-class="btn" page-classes-normal="btn-outline-dark" page-class-selected="btn-primary" class="btn btn-group pull-right m-1"
+     page-url-category="@Model.CurrentCategory">
+
+</div>
