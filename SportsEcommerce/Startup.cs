@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,9 @@ namespace SportsEcommerce
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews().AddRazorRuntimeCompilation();
+            services.AddRazorPages().AddRazorRuntimeCompilation();
+            services.AddServerSideBlazor().AddCircuitOptions(options => { options.DetailedErrors = true; }); ;
+
 
             // Setup DB to the type of database it will connect, and which connection string will descibe that connection
             services.AddDbContext<ApplicationDbContext>(opts =>
@@ -39,7 +43,6 @@ namespace SportsEcommerce
             services.AddScoped<IOrderRepository, EFOrderRepository>();
 
 
-            services.AddRazorPages().AddRazorRuntimeCompilation();
 
             // sets up in-memory data store so sessions can be stored in memory,
             // this means that sessions are lost after applicaiton is stopped or restarted 
@@ -48,21 +51,33 @@ namespace SportsEcommerce
             // request for for the Cart service will be handled by creating SessionCart objects
             services.AddScoped<Cart>(sp => SessionCart.GetCart(sp));
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            services.AddDbContext<ApplicationIdentityDbContext>(opts => opts.UseSqlServer(Configuration["ConnectionStrings:IdentityConnection"]));
+            services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<ApplicationIdentityDbContext>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
+            if (env.IsProduction())
+            {
+                app.UseExceptionHandler("/error");
+            }
+            else
             {
                 app.UseDeveloperExceptionPage();
+                app.UseStatusCodePages();
             }
+
             app.UseStatusCodePages();
             app.UseStaticFiles();
 
             app.UseSession();
 
             app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
@@ -80,9 +95,14 @@ namespace SportsEcommerce
                 endpoints.MapDefaultControllerRoute();
 
                 endpoints.MapRazorPages();
+                // registes the blazor middleware component
+                endpoints.MapBlazorHub();
+                endpoints.MapFallbackToPage("/admin/{~catchall}", "/Admin/Shared/Index");
             });
 
             SeedData.EnsurePopulated(app);
+            IdentitySeedData.EnsurePopulated(app);
+
         }
     }
 }

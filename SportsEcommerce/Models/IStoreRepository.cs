@@ -16,5 +16,10 @@ namespace SportsEcommerce.Models
         /// in such situations, the IQueryable interface should be converted to a more predictable form using the ToList<> or ToArray extension methods
         /// </summary>
         IQueryable<Product> Products { get;}
+
+        void SaveProduct(Product p);
+        void CreateProduct(Product p);
+        void DeleteProduct(Product p);
+
     }
 }

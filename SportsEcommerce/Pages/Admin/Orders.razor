@@ -1,0 +1,45 @@
+﻿@page "/admin/orders"
+@inherits OwningComponentBase<IOrderRepository>
+
+<OrderTable TableTitle="Unshipped Orders" Orders="UnshippedOrders" ButtonLabel="Ship" OrderSelected="ShipOrder" />
+<OrderTable TableTitle="Shipped Orders" Orders="ShippedOrders" ButtonLabel="Reset" OrderSelected="ResetOrder" />
+
+<button class="btn btn-info" @onclick="@(e => UpdateData())">Refresh</button>
+
+
+@code {
+
+    private IOrderRepository Repository => Service;
+
+    public IEnumerable<Order> AllOrders { get; set; }
+    public IEnumerable<Order> UnshippedOrders { get; set; }
+    public IEnumerable<Order> ShippedOrders { get; set; }
+
+    // to avoid repetadly quering the database, which can be a serious problem in Blazor,
+    // repository is used only when the component is initialized,
+    // when blazor invokes the OnInitializedAsync method or when a user clicks the Refresh button
+    protected async override Task OnInitializedAsync()
+    {
+        await UpdateData();
+    }
+
+    public async Task UpdateData()
+    {
+        AllOrders = await Repository.Orders.ToListAsync();
+        UnshippedOrders = AllOrders.Where(x => !x.Shipped);
+        ShippedOrders = AllOrders.Where(x => x.Shipped);
+    }
+
+    public void ShipOrder(int id) => UpdateOrder(id, true);
+    public void ResetOrder(int id) => UpdateOrder(id, false);
+
+
+    public void UpdateOrder(int id, bool shipValue)
+    {
+        Order o = Repository.Orders.FirstOrDefault(x => x.OrderId == id);
+        o.Shipped = shipValue;
+        Repository.SaveOrder(o);
+    }
+
+
+}
